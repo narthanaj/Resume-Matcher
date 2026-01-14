@@ -75,20 +75,13 @@ export default function DashboardPage() {
     }
   }, []);
 
-  useEffect(() => {
-    const storedId = localStorage.getItem('master_resume_id');
-    if (storedId) {
-      setMasterResumeId(storedId);
-      checkResumeStatus(storedId);
-    }
-  }, [checkResumeStatus]);
-
   const loadTailoredResumes = useCallback(async () => {
     try {
       const data = await fetchResumeList(true);
       const masterFromList = data.find((r) => r.is_master);
       const storedId = localStorage.getItem('master_resume_id');
-      const resolvedMasterId = masterFromList?.resume_id || storedId;
+      const storedIsValid = storedId ? data.some((r) => r.resume_id === storedId) : false;
+      const resolvedMasterId = masterFromList?.resume_id || (storedIsValid ? storedId : null);
 
       if (resolvedMasterId) {
         localStorage.setItem('master_resume_id', resolvedMasterId);
@@ -97,6 +90,7 @@ export default function DashboardPage() {
       } else {
         localStorage.removeItem('master_resume_id');
         setMasterResumeId(null);
+        setProcessingStatus('loading');
       }
 
       const filtered = data.filter((r) => r.resume_id !== resolvedMasterId);
@@ -329,7 +323,9 @@ export default function DashboardPage() {
                 {resume.filename || t('dashboard.tailoredResume')}
               </h3>
               <p className="text-xs font-mono mt-auto pt-4 text-gray-500 uppercase">
-                {t('dashboard.edited', { date: formatDate(resume.updated_at || resume.created_at) })}
+                {t('dashboard.edited', {
+                  date: formatDate(resume.updated_at || resume.created_at),
+                })}
               </p>
             </div>
           </div>

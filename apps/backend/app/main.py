@@ -1,15 +1,15 @@
 """FastAPI application entry point."""
 
-import asyncio
 import logging
 import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-# Fix for Windows: Use SelectorEventLoop for Playwright compatibility
+# Fix for Windows: Use ProactorEventLoop for subprocess support (Playwright)
 if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    import asyncio
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 logger = logging.getLogger(__name__)
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,7 +18,13 @@ from app import __version__
 from app.config import settings
 from app.database import db
 from app.pdf import close_pdf_renderer, init_pdf_renderer
-from app.routers import config_router, enrichment_router, health_router, jobs_router, resumes_router
+from app.routers import (
+    config_router,
+    enrichment_router,
+    health_router,
+    jobs_router,
+    resumes_router,
+)
 
 
 @asynccontextmanager
